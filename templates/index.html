@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b1224">
+  <meta name="description" content="SkyPulse - advanced live weather forecasts, hourly trends and air quality.">
+  <title>SkyPulse Weather</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/"><span class="brand-mark">☀</span><span>Sky<span class="brand-light">Pulse</span></span></a>
+      <div class="top-actions">
+        <button class="unit-toggle" id="unitToggle" aria-label="Toggle temperature unit"><span class="unit-active" id="celsiusBtn">°C</span><span id="fahrenheitBtn">°F</span></button>
+        <button class="icon-button" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">☾</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero-row">
+        <div>
+          <p class="eyebrow">YOUR PERSONAL WEATHER STATION</p>
+          <h1>Weather, <span>beautifully</span> forecast.</h1>
+          <p class="hero-subtitle">Real-time conditions and forecasts for anywhere in the world.</p>
+        </div>
+        <div class="live-pill"><span class="live-dot"></span> LIVE WEATHER</div>
+      </section>
+
+      <section class="search-section">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input id="cityInput" type="text" placeholder="Search city, e.g. Chennai, London, Tokyo..." autocomplete="off">
+          <button id="searchBtn" class="search-button">Search <span>→</span></button>
+          <div id="suggestions" class="suggestions hidden"></div>
+        </div>
+        <button id="locationBtn" class="location-button"><span>◎</span> Use my location</button>
+      </section>
+
+      <div id="statusMessage" class="status-message hidden"></div>
+
+      <section id="weatherContent" class="weather-content hidden">
+        <div class="location-heading">
+          <div><p class="eyebrow">WEATHER OVERVIEW</p><h2 id="placeName">—</h2><p id="localDate" class="muted">—</p></div>
+          <button id="favoriteBtn" class="favorite-button" title="Save favourite">☆ <span>Save location</span></button>
+        </div>
+
+        <div class="overview-grid">
+          <article class="current-card panel">
+            <div class="current-top"><span class="card-kicker">CURRENT WEATHER</span><span id="currentTime" class="muted small">LOCAL TIME</span></div>
+            <div class="current-main">
+              <div><div class="temperature" id="currentTemp">--°</div><div class="condition" id="currentCondition">Loading...</div><div class="feels" id="feelsLike">Feels like --°</div></div>
+              <div class="weather-art" id="weatherArt">☀️</div>
+            </div>
+            <div class="current-footer">
+              <div><span>H</span><strong id="todayHigh">--°</strong></div>
+              <div><span>L</span><strong id="todayLow">--°</strong></div>
+              <div><span>UV</span><strong id="currentUv">--</strong></div>
+            </div>
+          </article>
+          <article class="metric-card panel"><div class="metric-head"><span class="metric-icon">💧</span><span>HUMIDITY</span></div><strong id="humidity">--%</strong><p>Relative humidity</p><div class="meter"><i id="humidityBar"></i></div></article>
+          <article class="metric-card panel"><div class="metric-head"><span class="metric-icon">🌬️</span><span>WIND</span></div><strong id="wind">--</strong><p id="windDirection">Wind speed</p><div class="metric-foot">Gusts <b id="gusts">--</b></div></article>
+          <article class="metric-card panel"><div class="metric-head"><span class="metric-icon">🌡️</span><span>PRESSURE</span></div><strong id="pressure">--</strong><p>Sea-level pressure</p><div class="metric-foot">Cloud cover <b id="cloudCover">--</b></div></article>
+          <article class="metric-card panel"><div class="metric-head"><span class="metric-icon">☔</span><span>PRECIPITATION</span></div><strong id="precipitation">--</strong><p>Current precipitation</p><div class="metric-foot">Rain chance <b id="rainChance">--</b></div></article>
+        </div>
+
+        <div class="section-heading"><div><p class="eyebrow">PLAN YOUR DAY</p><h3>Today's forecast</h3></div><span class="section-note">Next 24 hours</span></div>
+        <section class="panel hourly-panel">
+          <div id="hourlyStrip" class="hourly-strip"></div>
+          <div class="chart-wrap"><canvas id="hourlyChart"></canvas></div>
+        </section>
+
+        <div class="section-heading"><div><p class="eyebrow">THE WEEK AHEAD</p><h3>7-day forecast</h3></div><span class="section-note">Daily outlook</span></div>
+        <section class="panel weekly-panel" id="weeklyForecast"></section>
+
+        <div class="bottom-grid">
+          <section class="panel sun-panel">
+            <div class="section-heading compact"><div><p class="eyebrow">DAYLIGHT</p><h3>Sunrise & sunset</h3></div><span class="sun-icon">🌅</span></div>
+            <div class="sun-times"><div><span>☀ Sunrise</span><strong id="sunrise">--:--</strong></div><div><span>🌇 Sunset</span><strong id="sunset">--:--</strong></div></div>
+            <div class="sun-track"><span class="sun-track-icon">☀</span><i></i><span class="sun-track-icon">☾</span></div>
+            <p class="muted tiny">Times shown in the selected location's local timezone.</p>
+          </section>
+          <section class="panel air-panel">
+            <div class="section-heading compact"><div><p class="eyebrow">BREATHE EASY</p><h3>Air quality</h3></div><span class="air-icon">◉</span></div>
+            <div class="aqi-row"><div class="aqi-number" id="aqiValue">--</div><div><strong id="aqiLabel">Not available</strong><p class="muted tiny">US Air Quality Index</p></div></div>
+            <div class="pollutants"><div><span>PM2.5</span><b id="pm25">--</b></div><div><span>PM10</span><b id="pm10">--</b></div><div><span>O₃</span><b id="ozone">--</b></div></div>
+          </section>
+        </div>
+        <p class="data-credit">Weather data provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.</p>
+      </section>
+
+      <section id="welcomeState" class="welcome-state">
+        <div class="welcome-icon">🌤️</div>
+        <h2>Find your forecast.</h2>
+        <p>Search for a city or use your location to explore live weather, hourly trends and the week ahead.</p>
+        <div class="quick-cities"><button data-city="Chennai">Chennai</button><button data-city="London">London</button><button data-city="Tokyo">Tokyo</button><button data-city="New York">New York</button></div>
+      </section>
+    </main>
+    <footer><span>SkyPulse</span><span>Made for curious minds <b>✦</b></span></footer>
+  </div>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
